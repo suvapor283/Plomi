@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
+import Header from '@/components/layout/Header';
 
 const pretendard = localFont({
   src: './fonts/PretendardVariable.woff2',
@@ -23,8 +24,9 @@ export default function RootLayout({
     <html lang="ko">
       <body
         className={`${pretendard.variable} antialiased`}
-        style={{ fontFamily: 'var(--font-pretendard)' }} // 글로벌 폰트 적용
+        style={{ fontFamily: 'var(--font-pretendard)' }}
       >
+        <Header />
         {children}
       </body>
     </html>
