@@ -1,7 +1,7 @@
 package com.ksj.plomi.domain.auth.service;
 
 import com.ksj.plomi.domain.auth.dto.SignupRequestDto;
-import com.ksj.plomi.domain.users.UserRepository;
+import com.ksj.plomi.domain.users.repository.UserRepository;
 import com.ksj.plomi.domain.users.entity.User;
 import com.ksj.plomi.domain.users.role.UserRole;
 import lombok.RequiredArgsConstructor;

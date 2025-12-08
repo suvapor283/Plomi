@@ -1,4 +1,4 @@
-package com.ksj.plomi.domain.users;
+package com.ksj.plomi.domain.users.repository;
 
 import com.ksj.plomi.domain.users.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
