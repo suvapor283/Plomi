@@ -3,5 +3,7 @@ server:
 spring:
   application:
     name: plomi
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
   profiles:
     active: dev
