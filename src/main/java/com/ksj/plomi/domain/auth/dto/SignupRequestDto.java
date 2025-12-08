@@ -1,5 +1,6 @@
 package com.ksj.plomi.domain.auth.dto;
 
+import com.ksj.plomi.global.validation.PasswordMatch;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -13,6 +14,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@PasswordMatch
 public class SignupRequestDto {
 
     @NotBlank(message = "아이디는 필수 입력 정보입니다.")
