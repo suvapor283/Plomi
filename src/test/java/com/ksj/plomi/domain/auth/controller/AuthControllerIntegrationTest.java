@@ -18,8 +18,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -40,7 +40,7 @@ public class AuthControllerIntegrationTest {
 
     @Test
     @DisplayName("회원가입 성공 테스트: 201 Created & 저장된 유저 반환")
-    void Signup_success() throws Exception {
+    void signup_success() throws Exception {
         SignupRequestDto requestDto = new SignupRequestDto();
         requestDto.setUsername("testuser");
         requestDto.setPassword("Password1!");
@@ -56,10 +56,13 @@ public class AuthControllerIntegrationTest {
                                 .content(json)
                 )
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("CREATED"))
+                .andExpect(jsonPath("$.message").doesNotExist())
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.name").value("testuserone"))
                 .andReturn();
 
-        String responseBody = result.getResponse().getContentAsString();
-        assertThat(responseBody).isEqualTo("회원가입 성공!");
         assertThat(userRepository.count()).isEqualTo(1);
 
         User savedUser = userRepository.findByUsername("testuser")
@@ -125,6 +128,7 @@ public class AuthControllerIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
+                .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("A002"))
                 .andExpect(jsonPath("$.name").value("EMAIL_DUPLICATION"))
                 .andExpect(jsonPath("$.message").value("이미 등록된 이메일입니다."));
