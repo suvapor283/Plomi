@@ -2,14 +2,17 @@ package com.ksj.plomi.global.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -51,5 +54,24 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(errorResponseDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponseDto> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
+        log.warn("HttpRequestMethodNotSupportedException 발생: {} - 요청 URI / 지원하는 메서드: {}",
+                e.getMessage(),
+                request.getRequestURI(),
+                Objects.requireNonNullElse(e.getSupportedHttpMethods(), HttpMethod.GET).toString()
+        );
+
+        ErrorResponseDto errorResponseDto = ErrorResponseDto.of(
+                ErrorCode.METHOD_NOT_ALLOWED.getHttpStatus(),
+                ErrorCode.METHOD_NOT_ALLOWED,
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(errorResponseDto, ErrorCode.METHOD_NOT_ALLOWED.getHttpStatus());
+
+
     }
 }
