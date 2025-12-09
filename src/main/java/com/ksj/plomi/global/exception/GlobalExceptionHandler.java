@@ -10,6 +10,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.List;
 import java.util.Objects;
@@ -71,7 +72,18 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(errorResponseDto, ErrorCode.METHOD_NOT_ALLOWED.getHttpStatus());
+    }
 
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleNoHandlerFound(NoHandlerFoundException e, HttpServletRequest request) {
+        log.warn("NoHandlerFoundException 발생: {} - 요청 URI: {}", e.getMessage(), request.getRequestURI());
 
+        ErrorResponseDto errorResponseDto = ErrorResponseDto.of(
+                ErrorCode.NOT_FOUND.getHttpStatus(),
+                ErrorCode.NOT_FOUND,
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(errorResponseDto, ErrorCode.NOT_FOUND.getHttpStatus());
     }
 }
