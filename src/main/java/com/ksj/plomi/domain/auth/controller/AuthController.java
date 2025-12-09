@@ -1,10 +1,13 @@
 package com.ksj.plomi.domain.auth.controller;
 
 import com.ksj.plomi.domain.auth.dto.SignupRequestDto;
+import com.ksj.plomi.domain.auth.dto.SignupResponseDto;
 import com.ksj.plomi.domain.auth.service.AuthService;
+import com.ksj.plomi.domain.users.entity.User;
+import com.ksj.plomi.global.response.ApiResponse;
+import com.ksj.plomi.global.response.SuccessStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,9 +22,15 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequestDto requestDto) {
-        authService.signup(requestDto);
+    public ResponseEntity<ApiResponse<SignupResponseDto>> signup(@Valid @RequestBody SignupRequestDto requestDto) {
+        User user = authService.signup(requestDto);
+        SignupResponseDto responseDto = SignupResponseDto.from(user);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공!");
+        ApiResponse<SignupResponseDto> body =
+                ApiResponse.success(SuccessStatus.CREATED, null, responseDto);
+
+        return ResponseEntity
+                .status(SuccessStatus.CREATED.getHttpStatus())
+                .body(body);
     }
 }
