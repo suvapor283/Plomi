@@ -7,11 +7,9 @@ import com.ksj.plomi.domain.users.role.UserRole;
 import com.ksj.plomi.global.exception.BusinessException;
 import com.ksj.plomi.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
