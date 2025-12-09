@@ -19,6 +19,7 @@ import tools.jackson.databind.ObjectMapper;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -71,7 +72,7 @@ public class AuthControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("비밀번호 불일치 테스트: 400 Bad Request 반환")
+    @DisplayName("비밀번호 불일치 테스트: 400 Bad Request & INVALID_INPUT_VALUE 코드 반환")
     void signup_fail_when_password_not_match() throws Exception {
         SignupRequestDto requestDto = new SignupRequestDto();
         requestDto.setUsername("testuser2");
@@ -87,13 +88,18 @@ public class AuthControllerIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("C001"))
+                .andExpect(jsonPath("$.name").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("$.message").value("유효하지 않은 입력값입니다."))
+                .andExpect(jsonPath("$.errors[0].field").value("password2"))
+                .andExpect(jsonPath("$.errors[0].defaultMessage").value("비밀번호와 일치하지 않습니다."));
 
         assertThat(userRepository.existsByUsername("testuser2")).isFalse();
     }
 
     @Test
-    @DisplayName("이메일 중복 테스트: 500 Internal Server Error 반환 (임시)")
+    @DisplayName("이메일 중복 테스트: 409 Conflict & EMAIL_DUPLICATION 코드 반환")
     void signup_fail_when_email_duplicate() throws Exception {
         User existing = User.builder()
                 .username("existingUser")
@@ -108,7 +114,7 @@ public class AuthControllerIntegrationTest {
         SignupRequestDto requestDto = new SignupRequestDto();
         requestDto.setUsername("newUser");
         requestDto.setPassword("Password3!");
-        requestDto.setPassword("Password3!");
+        requestDto.setPassword2("Password3!");
         requestDto.setEmail("dup@example.com");
         requestDto.setName("testuserfour");
 
@@ -119,7 +125,9 @@ public class AuthControllerIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(jsonPath("$.code").value("A002"))
+                .andExpect(jsonPath("$.name").value("EMAIL_DUPLICATION"))
+                .andExpect(jsonPath("$.message").value("이미 등록된 이메일입니다."));
 
         assertThat(userRepository.existsByUsername("newUser")).isFalse();
     }

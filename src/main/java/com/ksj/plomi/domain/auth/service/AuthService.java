@@ -4,6 +4,8 @@ import com.ksj.plomi.domain.auth.dto.SignupRequestDto;
 import com.ksj.plomi.domain.users.repository.UserRepository;
 import com.ksj.plomi.domain.users.entity.User;
 import com.ksj.plomi.domain.users.role.UserRole;
+import com.ksj.plomi.global.exception.BusinessException;
+import com.ksj.plomi.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,7 +38,7 @@ public class AuthService {
 
     private void checkUsernameDuplicate(String username) {
         if (userRepository.existsByUsername(username)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 존재하는 아이디입니다.");
+            throw new BusinessException(ErrorCode.USERNAME_DUPLICATION);
         }
     }
 
@@ -45,7 +47,7 @@ public class AuthService {
             return;
         }
         if (userRepository.existsByEmail(email)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 등록된 이메일입니다.");
+            throw new BusinessException(ErrorCode.EMAIL_DUPLICATION);
         }
     }
 
