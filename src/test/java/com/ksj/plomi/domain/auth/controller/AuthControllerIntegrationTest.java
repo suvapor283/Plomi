@@ -56,10 +56,13 @@ public class AuthControllerIntegrationTest {
                                 .content(json)
                 )
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("CREATED"))
+                .andExpect(jsonPath("$.message").doesNotExist())
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.name").value("testuserone"))
                 .andReturn();
 
-        String responseBody = result.getResponse().getContentAsString();
-        assertThat(responseBody).isEqualTo("회원가입 성공!");
         assertThat(userRepository.count()).isEqualTo(1);
 
         User savedUser = userRepository.findByUsername("testuser")
