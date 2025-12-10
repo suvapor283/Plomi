@@ -1,9 +1,10 @@
 package com.ksj.plomi.domain.auth.controller;
 
+import com.ksj.plomi.domain.auth.dto.LoginRequestDto;
+import com.ksj.plomi.domain.auth.dto.LoginResponseDto;
 import com.ksj.plomi.domain.auth.dto.SignupRequestDto;
 import com.ksj.plomi.domain.auth.dto.SignupResponseDto;
 import com.ksj.plomi.domain.auth.service.AuthService;
-import com.ksj.plomi.domain.users.entity.User;
 import com.ksj.plomi.global.response.ApiResponse;
 import com.ksj.plomi.global.response.SuccessStatus;
 import jakarta.validation.Valid;
@@ -23,14 +24,25 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponseDto>> signup(@Valid @RequestBody SignupRequestDto requestDto) {
-        User user = authService.signup(requestDto);
-        SignupResponseDto responseDto = SignupResponseDto.from(user);
+        SignupResponseDto responseDto = authService.signup(requestDto);
 
         ApiResponse<SignupResponseDto> body =
                 ApiResponse.success(SuccessStatus.CREATED, null, responseDto);
 
         return ResponseEntity
                 .status(SuccessStatus.CREATED.getHttpStatus())
+                .body(body);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto requestDto) {
+        LoginResponseDto responseDto = authService.login(requestDto);
+
+        ApiResponse<LoginResponseDto> body =
+                ApiResponse.success(responseDto);
+
+        return ResponseEntity
+                .status(SuccessStatus.SUCCESS.getHttpStatus())
                 .body(body);
     }
 }

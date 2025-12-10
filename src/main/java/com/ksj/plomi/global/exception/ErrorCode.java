@@ -16,7 +16,8 @@ public enum ErrorCode {
 
     // Auth Errors (A0XX)
     USERNAME_DUPLICATION(HttpStatus.CONFLICT, "A001", "이미 존재하는 아이디입니다."),
-    EMAIL_DUPLICATION(HttpStatus.CONFLICT, "A002", "이미 등록된 이메일입니다.");
+    EMAIL_DUPLICATION(HttpStatus.CONFLICT, "A002", "이미 등록된 이메일입니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "A003", "아이디 또는 비밀번호가 일치하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
