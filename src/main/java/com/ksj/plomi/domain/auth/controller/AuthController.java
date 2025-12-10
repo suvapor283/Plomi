@@ -1,5 +1,7 @@
 package com.ksj.plomi.domain.auth.controller;
 
+import com.ksj.plomi.domain.auth.dto.LoginRequestDto;
+import com.ksj.plomi.domain.auth.dto.LoginResponseDto;
 import com.ksj.plomi.domain.auth.dto.SignupRequestDto;
 import com.ksj.plomi.domain.auth.dto.SignupResponseDto;
 import com.ksj.plomi.domain.auth.service.AuthService;
@@ -29,6 +31,18 @@ public class AuthController {
 
         return ResponseEntity
                 .status(SuccessStatus.CREATED.getHttpStatus())
+                .body(body);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto requestDto) {
+        LoginResponseDto responseDto = authService.login(requestDto);
+
+        ApiResponse<LoginResponseDto> body =
+                ApiResponse.success(responseDto);
+
+        return ResponseEntity
+                .status(SuccessStatus.SUCCESS.getHttpStatus())
                 .body(body);
     }
 }
