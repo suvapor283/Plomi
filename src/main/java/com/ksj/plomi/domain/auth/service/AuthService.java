@@ -36,7 +36,7 @@ public class AuthService {
         return SignupResponseDto.from(savedUser);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponseDto login(LoginRequestDto requestDto) {
         User user = findUserByUsername(requestDto.getUsername());
 
@@ -124,6 +124,8 @@ public class AuthService {
         }
     }
 
+    // ===============================================================================================
+    // --- 토큰재발급(refreshToken) 관련 보조 로직 ---
     @Transactional
     protected void saveRefreshToken(Long userId, String refreshToken) {
         String key = buildRefreshTokenKey(userId);
