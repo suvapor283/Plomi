@@ -11,9 +11,12 @@ import com.ksj.plomi.global.exception.BusinessException;
 import com.ksj.plomi.global.exception.ErrorCode;
 import com.ksj.plomi.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final StringRedisTemplate redisTemplate;
 
     @Transactional
     public SignupResponseDto signup(SignupRequestDto requestDto) {
@@ -42,8 +46,11 @@ public class AuthService {
         validatePassword(requestDto.getPassword(), user.getPassword());
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUsername());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUsername());
 
-        return LoginResponseDto.from(accessToken, user);
+        saveRefreshToken(user.getId(), refreshToken);
+
+        return LoginResponseDto.from(accessToken, refreshToken, user);
     }
 
     // ===============================================================================================
@@ -89,5 +96,18 @@ public class AuthService {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
+    }
+
+    @Transactional
+    protected void saveRefreshToken(Long userId, String refreshToken) {
+        String key = buildRefreshTokenKey(userId);
+        long ttl = jwtTokenProvider.getRefreshTokenValidityInMillis();
+
+        redisTemplate.opsForValue()
+                .set(key, refreshToken, ttl, TimeUnit.MILLISECONDS);
+    }
+
+    private String buildRefreshTokenKey(Long userId) {
+        return "RT:" + userId;
     }
 }
