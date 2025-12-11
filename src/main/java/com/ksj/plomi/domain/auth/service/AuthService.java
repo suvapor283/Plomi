@@ -1,9 +1,6 @@
 package com.ksj.plomi.domain.auth.service;
 
-import com.ksj.plomi.domain.auth.dto.LoginRequestDto;
-import com.ksj.plomi.domain.auth.dto.LoginResponseDto;
-import com.ksj.plomi.domain.auth.dto.SignupRequestDto;
-import com.ksj.plomi.domain.auth.dto.SignupResponseDto;
+import com.ksj.plomi.domain.auth.dto.*;
 import com.ksj.plomi.domain.users.repository.UserRepository;
 import com.ksj.plomi.domain.users.entity.User;
 import com.ksj.plomi.domain.users.role.UserRole;
@@ -51,6 +48,35 @@ public class AuthService {
         saveRefreshToken(user.getId(), refreshToken);
 
         return LoginResponseDto.from(accessToken, refreshToken, user);
+    }
+
+    @Transactional
+    public LoginResponseDto refreshToken(TokenRefreshRequestDto requestDto) {
+        String refreshToken = requestDto.getRefreshToken();
+
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_TOKEN);
+        }
+
+        String username = jwtTokenProvider.getUsername(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Long userId = user.getId();
+        String key = buildRefreshTokenKey(userId);
+
+        String storedToken = redisTemplate.opsForValue().get(key);
+
+        if (storedToken == null || !storedToken.equals(refreshToken)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_TOKEN);
+        }
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(user.getUsername());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getUsername());
+
+        saveRefreshToken(userId, newRefreshToken);
+
+        return LoginResponseDto.from(newAccessToken, newRefreshToken, user)
     }
 
     // ===============================================================================================
