@@ -35,6 +35,7 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String profileImageUrl;
 
+    @Column(length = 50)
     private String statusMessage;
 
     @Enumerated(EnumType.STRING)
