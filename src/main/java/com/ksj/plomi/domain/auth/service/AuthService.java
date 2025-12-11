@@ -76,7 +76,7 @@ public class AuthService {
 
         saveRefreshToken(userId, newRefreshToken);
 
-        return LoginResponseDto.from(newAccessToken, newRefreshToken, user)
+        return LoginResponseDto.from(newAccessToken, newRefreshToken, user);
     }
 
     // ===============================================================================================

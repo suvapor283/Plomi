@@ -1,9 +1,6 @@
 package com.ksj.plomi.domain.auth.controller;
 
-import com.ksj.plomi.domain.auth.dto.LoginRequestDto;
-import com.ksj.plomi.domain.auth.dto.LoginResponseDto;
-import com.ksj.plomi.domain.auth.dto.SignupRequestDto;
-import com.ksj.plomi.domain.auth.dto.SignupResponseDto;
+import com.ksj.plomi.domain.auth.dto.*;
 import com.ksj.plomi.domain.auth.service.AuthService;
 import com.ksj.plomi.global.response.ApiResponse;
 import com.ksj.plomi.global.response.SuccessStatus;
@@ -40,6 +37,17 @@ public class AuthController {
 
         ApiResponse<LoginResponseDto> body =
                 ApiResponse.success(responseDto);
+
+        return ResponseEntity
+                .status(SuccessStatus.SUCCESS.getHttpStatus())
+                .body(body);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponseDto>> refresh(@Valid @RequestBody TokenRefreshRequestDto requestDto) {
+        LoginResponseDto responseDto = authService.refreshToken(requestDto);
+
+        ApiResponse<LoginResponseDto> body = ApiResponse.success(responseDto);
 
         return ResponseEntity
                 .status(SuccessStatus.SUCCESS.getHttpStatus())
