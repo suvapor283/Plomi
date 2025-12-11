@@ -13,16 +13,18 @@ public class LoginResponseDto {
 
     private final String accessToken;
     private final String tokenType;
+    private final String refreshToken;
     private final Long id;
     private final String name;
     private final UserRole role;
     private final String profileImageUrl;
     private final String statusMessage;
 
-    public static LoginResponseDto from(String accessToken, User user) {
+    public static LoginResponseDto from(String accessToken, String refreshToken, User user) {
         return LoginResponseDto.builder()
                 .accessToken(accessToken)
                 .tokenType("Bearer")
+                .refreshToken(refreshToken)
                 .id(user.getId())
                 .name(user.getName())
                 .role(user.getRole())

@@ -1,9 +1,6 @@
 package com.ksj.plomi.domain.auth.service;
 
-import com.ksj.plomi.domain.auth.dto.LoginRequestDto;
-import com.ksj.plomi.domain.auth.dto.LoginResponseDto;
-import com.ksj.plomi.domain.auth.dto.SignupRequestDto;
-import com.ksj.plomi.domain.auth.dto.SignupResponseDto;
+import com.ksj.plomi.domain.auth.dto.*;
 import com.ksj.plomi.domain.users.repository.UserRepository;
 import com.ksj.plomi.domain.users.entity.User;
 import com.ksj.plomi.domain.users.role.UserRole;
@@ -11,9 +8,12 @@ import com.ksj.plomi.global.exception.BusinessException;
 import com.ksj.plomi.global.exception.ErrorCode;
 import com.ksj.plomi.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +22,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final StringRedisTemplate redisTemplate;
 
     @Transactional
     public SignupResponseDto signup(SignupRequestDto requestDto) {
@@ -35,15 +36,47 @@ public class AuthService {
         return SignupResponseDto.from(savedUser);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponseDto login(LoginRequestDto requestDto) {
         User user = findUserByUsername(requestDto.getUsername());
 
         validatePassword(requestDto.getPassword(), user.getPassword());
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUsername());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUsername());
 
-        return LoginResponseDto.from(accessToken, user);
+        saveRefreshToken(user.getId(), refreshToken);
+
+        return LoginResponseDto.from(accessToken, refreshToken, user);
+    }
+
+    @Transactional
+    public LoginResponseDto refreshToken(TokenRefreshRequestDto requestDto) {
+        String refreshToken = requestDto.getRefreshToken();
+
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_TOKEN);
+        }
+
+        String username = jwtTokenProvider.getUsername(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Long userId = user.getId();
+        String key = buildRefreshTokenKey(userId);
+
+        String storedToken = redisTemplate.opsForValue().get(key);
+
+        if (storedToken == null || !storedToken.equals(refreshToken)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_TOKEN);
+        }
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(user.getUsername());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getUsername());
+
+        saveRefreshToken(userId, newRefreshToken);
+
+        return LoginResponseDto.from(newAccessToken, newRefreshToken, user);
     }
 
     // ===============================================================================================
@@ -89,5 +122,20 @@ public class AuthService {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
+    }
+
+    // ===============================================================================================
+    // --- 토큰재발급(refreshToken) 관련 보조 로직 ---
+    @Transactional
+    protected void saveRefreshToken(Long userId, String refreshToken) {
+        String key = buildRefreshTokenKey(userId);
+        long ttl = jwtTokenProvider.getRefreshTokenValidityInMillis();
+
+        redisTemplate.opsForValue()
+                .set(key, refreshToken, ttl, TimeUnit.MILLISECONDS);
+    }
+
+    private String buildRefreshTokenKey(Long userId) {
+        return "RT:" + userId;
     }
 }

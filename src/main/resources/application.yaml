@@ -7,6 +7,3 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   profiles:
     active: dev
-
-jwt:
-  access-token-validity-in-seconds: 3600
