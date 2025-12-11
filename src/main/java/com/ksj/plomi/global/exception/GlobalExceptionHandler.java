@@ -89,7 +89,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleAllUncaughtException(Exception e, HttpServletRequest request) {
-        log.warn("예상치 못한 최상위 예외 발생: {}", e.getMessage(), e);
+        log.error("예상치 못한 최상위 예외 발생: {}", e.getMessage(), e);
 
         ErrorResponseDto errorResponseDto = ErrorResponseDto.of(
                 HttpStatus.INTERNAL_SERVER_ERROR,
